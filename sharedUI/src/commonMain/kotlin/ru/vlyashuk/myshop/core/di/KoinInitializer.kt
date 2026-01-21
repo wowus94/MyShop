@@ -8,7 +8,7 @@ object KoinInitializer {
     fun init() {
         if (!started) {
             startKoin {
-
+                modules(appModules())
             }
             started = true
         }
