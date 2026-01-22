@@ -30,13 +30,16 @@ import ru.vlyashuk.myshop.ui.ErrorState
 import ru.vlyashuk.myshop.ui.LoadingState
 
 @Composable
-fun CatalogRoute() {
+fun CatalogRoute(
+    onProductClick: (Product) -> Unit
+) {
     val viewModel: CatalogViewModel = koinViewModel()
     val state by viewModel.state.collectAsState()
 
     CatalogScreen(
         state = state,
-        onRefresh = viewModel::refresh
+        onRefresh = viewModel::refresh,
+        onProductClick = onProductClick
     )
 }
 
@@ -44,7 +47,8 @@ fun CatalogRoute() {
 @Composable
 private fun CatalogScreen(
     state: CatalogUiState,
-    onRefresh: () -> Unit
+    onRefresh: () -> Unit,
+    onProductClick: (Product) -> Unit
 ) {
     Scaffold { padding ->
         Box(
@@ -55,28 +59,44 @@ private fun CatalogScreen(
             when {
                 state.isLoading -> LoadingState()
                 state.error != null -> ErrorState(message = state.error, onRefresh = onRefresh)
-                else -> ProductsList(products = state.products)
+                else -> ProductsList(
+                    products = state.products,
+                    onProductClick = onProductClick
+                )
             }
         }
     }
 }
 
 @Composable
-private fun ProductsList(products: List<Product>) {
+private fun ProductsList(
+    products: List<Product>,
+    onProductClick: (Product) -> Unit
+) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         items(products, key = { it.id }) { product ->
-            ProductCard(product)
+            ProductCard(
+                product = product,
+                onClick = onProductClick
+            )
         }
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun ProductCard(product: Product) {
-    Card(modifier = Modifier.fillMaxWidth()) {
+private fun ProductCard(
+    product: Product,
+    onClick: (Product) -> Unit
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        onClick = { onClick(product) }
+    ) {
         Column(modifier = Modifier.padding(16.dp)) {
             if (product.thumbnail != null) {
                 AsyncProductImage(url = product.thumbnail)
